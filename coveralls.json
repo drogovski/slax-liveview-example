@@ -1,0 +1,16 @@
+{
+    "skip_files": [
+        "lib/slax/application.ex",
+        "lib/slax_web.ex",
+        "lib/slax_web/telemetry.ex",
+        "lib/slax_web/components/core_comp",
+        "lib/slax_web/router.ex",
+        "lib/slax_web/views/error_helpers.ex",
+        "lib/slax/release.ex",
+        "test/support/data_case.ex"
+    ],
+    "coverage_options": {
+        "treat_no_relevant_lines_as_covered": true,
+        "minimum_coverage": 95
+    }
+}
