@@ -35,3 +35,7 @@ slax-*.tar
 npm-debug.log
 /assets/node_modules/
 
+#language server stuff
+/.elixir_ls/
+
+/.vscode/
