@@ -18,8 +18,13 @@ defmodule SlaxWeb.ChatRoomLive do
         <div class="flex items-center h-8 px-3 group">
           <span class="ml-2 leading-none font-medium text-sm">Rooms</span>
         </div>
-        <div id="rooms-list">
-          <.room_link :for={room <- @rooms} room={room} active={room.id == @room.id} />
+        <div id="rooms-list" phx-update="stream">
+          <.room_link
+            :for={{dom_id, room} <- @streams.rooms}
+            dom_id={dom_id}
+            room={room}
+            active={room.id == @room.id}
+          />
         </div>
       </div>
     </div>
@@ -85,8 +90,8 @@ defmodule SlaxWeb.ChatRoomLive do
           <% end %>
         </ul>
       </div>
-      <div class="flex flex-col flex-grow overflow-auto">
-        <.message :for={message <- @messages} message={message} />
+      <div id="room-messages" class="flex flex-col flex-grow overflow-auto" phx-update="stream">
+        <.message :for={{dom_id, message} <- @streams.messages} dom_id={dom_id} message={message} />
       </div>
       <div class="h-12 bg-white px-4 pb-4">
         <.form
@@ -114,11 +119,12 @@ defmodule SlaxWeb.ChatRoomLive do
     """
   end
 
+  attr :dom_id, :string, required: true
   attr :message, Message, required: true
 
   defp message(assigns) do
     ~H"""
-    <div class="relative flex px-4 py-3">
+    <div id={@dom_id} class="relative flex px-4 py-3">
       <div class="h-10 w-10 rounded flex-shrink-0 bg-slate-300"></div>
       <div class="ml-2">
         <div class="-mt-1">
@@ -136,12 +142,14 @@ defmodule SlaxWeb.ChatRoomLive do
     user.email |> String.split("@") |> List.first() |> String.capitalize()
   end
 
+  attr :dom_id, :string, required: true
   attr :active, :boolean, required: true
   attr :room, Room, required: true
 
   defp room_link(assigns) do
     ~H"""
     <.link
+      id={@dom_id}
       class={[
         "flex items-center h-8 text-sm pl-8 pr-3",
         (@active && "bg-slate-300") || "hover:bg-slate-300"
@@ -158,7 +166,10 @@ defmodule SlaxWeb.ChatRoomLive do
 
   def mount(_params, _session, socket) do
     rooms = Chat.list_rooms()
-    {:ok, assign(socket, rooms: rooms)}
+
+    {:ok,
+     socket
+     |> stream(:rooms, rooms)}
   end
 
   def handle_params(params, _session, socket) do
@@ -177,10 +188,10 @@ defmodule SlaxWeb.ChatRoomLive do
      socket
      |> assign(
        hide_topic?: false,
-       messages: messages,
        page_title: "#" <> room.name,
        room: room
      )
+     |> stream(:messages, messages, reset: true)
      |> assign_message_form(Chat.change_message(%Message{}))}
   end
 
@@ -205,7 +216,7 @@ defmodule SlaxWeb.ChatRoomLive do
       case Chat.create_message(room, message_params, current_user) do
         {:ok, message} ->
           socket
-          |> update(:messages, &(&1 ++ [message]))
+          |> stream_insert(:messages, message)
           |> assign_message_form(Chat.change_message(%Message{}))
 
         {:error, changeset} ->
