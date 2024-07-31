@@ -9,6 +9,16 @@ defmodule SlaxWeb.ChatRoomLive do
 
   def render(assigns) do
     ~H"""
+    <style>
+      /* Custom CSS to handle hover interaction */
+      .group:hover .dropdown-menu {
+      display: block;
+      }
+      .dropdown-menu {
+      display: none;
+      }
+    </style>
+
     <div class="flex flex-col flex-shrink-0 w-64 bg-slate-100">
       <div class="flex justify-between items-center flex-shrink-0 h-16 border-b border-slate-300 px-4">
         <div class="flex flex-col gap-1.5">
@@ -28,6 +38,24 @@ defmodule SlaxWeb.ChatRoomLive do
             room={room}
             active={room.id == @room.id}
           />
+        </div>
+        <div class="group relative">
+          <button class="flex items-center h-8 text-sm pl-8 pr-3 hover:bg-slate-300 cursor-pointer w-full">
+            <.icon name="hero-plus" class="h-4 w-4 relative top-px" />
+            <span class="ml-2 leading-none">Add rooms</span>
+          </button>
+          <div class="dropdown-menu cursor-default absolute top-8 right-2 bg-white border-slate-200 border py-3 rounded-lg">
+            <div class="w-full text-left">
+              <div class="hover:bg-sky-600">
+                <div
+                  phx-click={JS.navigate(~p"/rooms/")}
+                  class="cursor-pointer whitespace-nowrap text-gray-800 hover:text-white px-6 py-1"
+                >
+                  Browse rooms
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
         <div class="mt-4">
           <div class="flex items-center h-8 px-3 group">
